@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GOAT | Server Boss</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --gold: #FFD700;
+            --gold-glow: rgba(255, 215, 0, 0.6);
+            --gold-dim: rgba(255, 215, 0, 0.1);
+            --bg: #050505;
+            --card-bg: #0b0b0b;
+            --text-main: #ffffff;
+            --text-dim: #888888;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Rajdhani', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* --- BACKGROUND CANVAS (Simulated Shader/Particles) --- */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #111, #000);
+        }
+
+        /* --- LOADING SCREEN (Glitch Effect) --- */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+
+        .glitch-wrapper {
+            position: relative;
+        }
+
+        .glitch {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 3rem;
+            color: var(--gold);
+            letter-spacing: 5px;
+            position: relative;
+            animation: glitch-skew 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .glitch::before {
+            left: 2px;
+            text-shadow: -2px 0 #ff00c1;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+
+        .glitch::after {
+            left: -2px;
+            text-shadow: -2px 0 #00fff9;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% {
+                clip: rect(12px, 9999px, 86px, 0);
+            }
+
+            20% {
+                clip: rect(84px, 9999px, 16px, 0);
+            }
+
+            40% {
+                clip: rect(6px, 9999px, 95px, 0);
+            }
+
+            60% {
+                clip: rect(32px, 9999px, 5px, 0);
+            }
+
+            80% {
+                clip: rect(54px, 9999px, 66px, 0);
+            }
+
+            100% {
+                clip: rect(10px, 9999px, 20px, 0);
+            }
+        }
+
+        @keyframes glitch-anim2 {
+            0% {
+                clip: rect(2px, 9999px, 46px, 0);
+            }
+
+            20% {
+                clip: rect(24px, 9999px, 6px, 0);
+            }
+
+            40% {
+                clip: rect(56px, 9999px, 35px, 0);
+            }
+
+            60% {
+                clip: rect(12px, 9999px, 85px, 0);
+            }
+
+            80% {
+                clip: rect(34px, 9999px, 16px, 0);
+            }
+
+            100% {
+                clip: rect(70px, 9999px, 90px, 0);
+            }
+        }
+
+        .loader-bar {
+            width: 200px;
+            height: 2px;
+            background: #222;
+            margin-top: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loader-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 100%;
+            background: var(--gold);
+            box-shadow: 0 0 20px var(--gold);
+            animation: loading-fill 2.5s ease-in-out forwards;
+        }
+
+        @keyframes loading-fill {
+            100% {
+                width: 100%;
+            }
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            position: absolute;
+            top: 40px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            z-index: 100;
+            opacity: 0;
+            animation: fadeDown 1s ease 2.5s forwards;
+        }
+
+        nav a {
+            color: #666;
+            text-decoration: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+
+        nav a.active,
+        nav a:hover {
+            color: var(--gold);
+            text-shadow: 0 0 10px var(--gold-glow);
+        }
+
+        /* --- MAIN LAYOUT --- */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3rem;
+            z-index: 10;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .content-visible .main-container {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* --- THE CARD --- */
+        .glass-card {
+            width: 380px;
+            padding: 4rem 2rem 3rem;
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            position: relative;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Circuit Lines decoration on card */
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 20px;
+            background:
+                linear-gradient(90deg, transparent 50%, rgba(255, 215, 0, 0.03) 50%),
+                linear-gradient(0deg, transparent 50%, rgba(255, 215, 0, 0.03) 50%);
+            background-size: 20px 20px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* BADGE */
+        .badge {
+            position: absolute;
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gold);
+            color: #000;
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.8rem;
+            padding: 6px 16px;
+            border-radius: 4px;
+            box-shadow: 0 0 20px var(--gold-glow);
+            letter-spacing: 1px;
+        }
+
+        /* TEXTS */
+        .title-goat {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 4.5rem;
+            color: var(--gold);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 30px var(--gold-glow);
+            letter-spacing: -2px;
+        }
+
+        .subtitle-user {
+            font-family: 'JetBrains Mono', monospace;
+            color: #fff;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            letter-spacing: 2px;
+        }
+
+        .desc-boss {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            color: #666;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+
+        /* --- ICONS ROW --- */
+        .icons-dock {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .icon-btn {
+            width: 64px;
+            height: 64px;
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold);
+            font-size: 1.8rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.5);
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .icon-btn img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            filter: brightness(0) sepia(1) hue-rotate(5deg) saturate(5) brightness(1.2);
+            /* Attempt to make images gold */
+            transition: filter 0.3s;
+        }
+
+        .icon-btn:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 215, 0, 0.1);
+            border-color: var(--gold);
+            box-shadow: 0 0 25px var(--gold-dim);
+        }
+
+        .icon-btn:hover img {
+            filter: none;
+            /* Return to original color on hover */
+        }
+
+        .icon-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* --- TOAST --- */
+        .toast {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--gold);
+            color: #000;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+            padding: 10px 20px;
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 100;
+            box-shadow: 0 0 20px var(--gold-glow);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @keyframes fadeDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loader">
+        <div class="glitch-wrapper">
+            <div class="glitch" data-text="LOADING">LOADING</div>
+        </div>
+        <div class="loader-bar"></div>
+    </div>
+
+    <!-- Canvas for Particle Shader Effect -->
+    <canvas id="bg-canvas"></canvas>
+
+    <nav>
+        <a href="#" class="active">Server Boss</a>
+        <a href="#">Members</a>
+        <a href="#">Rules</a>
+        <a href="#">Contact</a>
+    </nav>
+
+    <div class="main-container">
+
+        <div class="glass-card">
+            <div class="badge">MODERATOR</div>
+            <h1 class="title-goat">GOAT</h1>
+            <div class="subtitle-user">kaito_09.ay</div>
+            <p class="desc-boss">Le boss du serveur. Respect l'autorité.</p>
+        </div>
+
+        <div class="icons-dock">
+            <a href="https://paypal.me/votre_pseudo" target="_blank" class="icon-btn">
+                <i class="fab fa-paypal"></i>
+            </a>
+            <div class="icon-btn" onclick="copy('DiscordUser#0000', 'Discord Copié')">
+                <i class="fab fa-discord"></i>
+            </div>
+            <div class="icon-btn" onclick="copy('SupercellID', 'Supercell ID Copié')">
+                <div style="font-weight:900; font-size: 1.2rem; font-family:'Archivo Black'; transform: scaleY(0.8);">SC
+                </div>
+            </div>
+            <div class="icon-btn" onclick="copy('EpicID', 'Epic ID Copié')">
+                <i class="fas fa-bolt"></i>
+                <!-- Using FontAwesome bolt as placeholder if image fails or for style consistency -->
+            </div>
+        </div>
+
+    </div>
+
+    <div class="toast" id="toast">COPIÉ !</div>
+
+    <script>
+        // --- LOADING SEQUENCE ---
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                document.body.classList.add('content-visible');
+
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.visibility = 'hidden';
+                }, 800);
+            }, 2500); // 2.5s loading time for effect
+        });
+
+        // --- PARTICLE BACKGROUND SYSTEM (Imitating Shader) ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let particles = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 2; // Tiny particles
+                this.speedY = Math.random() * 0.5 + 0.1;
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+            update() {
+                this.y -= this.speedY; // Move up
+                if (this.y < 0) {
+                    this.y = height;
+                    this.x = Math.random() * width;
+                }
+                this.opacity += (Math.random() - 0.5) * 0.05; // Twinkle effect
+                if (this.opacity < 0) this.opacity = 0;
+                if (this.opacity > 0.8) this.opacity = 0.8;
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 215, 0, ${this.opacity})`; // Gold color
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Create particles
+        for (let i = 0; i < 150; i++) {
+            particles.push(new Particle());
+        }
+
+        // Background Circuit Lines (Procedural)
+        function drawLines() {
+            ctx.strokeStyle = 'rgba(255, 215, 0, 0.03)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            // Simple grid lines moving slightly
+            for (let x = 0; x < width; x += 100) {
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+            }
+            ctx.stroke();
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height); // Clear canvas
+
+            // Draw background gradient
+            const gradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width);
+            gradient.addColorStop(0, '#111111');
+            gradient.addColorStop(1, '#000000');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+
+            drawLines();
+
+            // Animate particles
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+
+        // --- UTILS ---
+        function copy(text, msg) {
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById('toast');
+                toast.innerText = msg;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        }
+    </script>
+</body>
+
+</html>
