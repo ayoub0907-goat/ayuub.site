@@ -637,16 +637,20 @@
             });
         }
 
-        // --- VIEW COUNTER (starts at 100) ---
-        function updateViewCount() {
-            let views = localStorage.getItem('ayuub_site_views');
-            if (views === null || parseInt(views) < 100) {
-                views = 100; // Start at 100
-            } else {
-                views = parseInt(views) + 1;
+        // --- VIEW COUNTER (Global - shared by all visitors) ---
+        async function updateViewCount() {
+            const viewCountEl = document.getElementById('view-count');
+            try {
+                // CountAPI: namespace = ayuub-site, key = visits
+                const response = await fetch('https://api.countapi.xyz/hit/ayuub-site/visits');
+                const data = await response.json();
+                // Add 99 to start at 100 (CountAPI starts at 1)
+                const views = data.value + 99;
+                viewCountEl.textContent = views;
+            } catch (error) {
+                // Fallback to 100 if API fails
+                viewCountEl.textContent = '100+';
             }
-            localStorage.setItem('ayuub_site_views', views);
-            document.getElementById('view-count').textContent = views;
         }
         updateViewCount();
 
