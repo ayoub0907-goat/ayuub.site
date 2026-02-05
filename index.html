@@ -192,7 +192,8 @@
             position: absolute;
             top: 40px;
             width: 100%;
-            display: flex;
+            display: none;
+            /* Hidden as requested */
             justify-content: center;
             gap: 2rem;
             z-index: 100;
@@ -237,30 +238,22 @@
         .glass-card {
             width: 380px;
             padding: 4rem 2rem 3rem;
-            background: rgba(10, 10, 10, 0.8);
+            background: rgba(10, 10, 10, 0.4);
+            /* Reduced opacity */
             border: 1px solid rgba(255, 215, 0, 0.3);
             border-radius: 20px;
             position: relative;
             text-align: center;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(20px);
+            /* Increased blur */
+            -webkit-backdrop-filter: blur(20px);
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
         }
 
         /* Circuit Lines decoration on card */
         .glass-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border-radius: 20px;
-            background:
-                linear-gradient(90deg, transparent 50%, rgba(255, 215, 0, 0.03) 50%),
-                linear-gradient(0deg, transparent 50%, rgba(255, 215, 0, 0.03) 50%);
-            background-size: 20px 20px;
-            pointer-events: none;
-            z-index: -1;
+            display: none;
+            /* Removed grid lines */
         }
 
         /* BADGE */
@@ -312,43 +305,53 @@
             gap: 1.5rem;
         }
 
+        /* Standard Image Styling: White Filter */
+        .icon-btn img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            /* White: Brightness 0 -> Black, Invert 1 -> White */
+            filter: brightness(0) invert(1);
+            transition: filter 0.3s;
+        }
+
         .icon-btn {
             width: 64px;
             height: 64px;
             border: 1px solid rgba(255, 215, 0, 0.4);
+            /* Gold Border */
             border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--gold);
+            color: #ffffff;
+            /* White Icon (for FontAwesome) */
             font-size: 1.8rem;
             text-decoration: none;
             transition: all 0.3s ease;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             position: relative;
             cursor: pointer;
             overflow: hidden;
         }
 
-        .icon-btn img {
-            width: 32px;
-            height: 32px;
-            object-fit: contain;
-            filter: brightness(0) sepia(1) hue-rotate(5deg) saturate(5) brightness(1.2);
-            /* Attempt to make images gold */
-            transition: filter 0.3s;
-        }
-
         .icon-btn:hover {
             transform: translateY(-5px);
             background: rgba(255, 215, 0, 0.1);
+            /* Gold glow on hover */
             border-color: var(--gold);
             box-shadow: 0 0 25px var(--gold-dim);
         }
 
+        /* On hover, turn icon BLACK */
         .icon-btn:hover img {
-            filter: none;
-            /* Return to original color on hover */
+            filter: brightness(0);
+        }
+
+        .icon-btn:hover i {
+            color: #000;
         }
 
         .icon-btn:active {
@@ -396,7 +399,7 @@
 
     <div id="loader">
         <div class="glitch-wrapper">
-            <div class="glitch" data-text="LOADING">LOADING</div>
+            <div class="glitch" data-text="GOAT">GOAT</div>
         </div>
         <div class="loader-bar"></div>
     </div>
@@ -414,29 +417,32 @@
     <div class="main-container">
 
         <div class="glass-card">
-            <div class="badge">MODERATOR</div>
+            <div class="badge">OWNER</div>
             <h1 class="title-goat">GOAT</h1>
-            <div class="subtitle-user">kaito_09.ay</div>
+            <!-- Username removed -->
             <p class="desc-boss">Le boss du serveur. Respect l'autorité.</p>
         </div>
 
         <div class="icons-dock">
-            <a href="https://paypal.me/votre_pseudo" target="_blank" class="icon-btn">
+            <a href="https://paypal.me/GoatAyoub690" target="_blank" class="icon-btn">
                 <i class="fab fa-paypal"></i>
             </a>
-            <div class="icon-btn" onclick="copy('DiscordUser#0000', 'Discord Copié')">
+            <!-- Discord: Lien vers le profil -->
+            <a href="https://discord.com/users/1321822260121571343" target="_blank" class="icon-btn">
                 <i class="fab fa-discord"></i>
-            </div>
-            <div class="icon-btn" onclick="copy('SupercellID', 'Supercell ID Copié')">
-                <div style="font-weight:900; font-size: 1.2rem; font-family:'Archivo Black'; transform: scaleY(0.8);">SC
-                </div>
-            </div>
-            <div class="icon-btn" onclick="copy('EpicID', 'Epic ID Copié')">
-                <i class="fas fa-bolt"></i>
-                <!-- Using FontAwesome bolt as placeholder if image fails or for style consistency -->
+            </a>
+
+            <!-- Supercell: Lien Brawl Stars -->
+            <a href="https://link.brawlstars.com/invite/friend/fr?tag=8YYUPU288&token=td7m8bst" target="_blank"
+                class="icon-btn">
+                <img src="logo/supercell.png" alt="SC">
+            </a>
+
+            <!-- Epic Games: Copie le pseudo (pas de lien direct possible) -->
+            <div class="icon-btn" onclick="copy('aytounsi', 'Pseudo Epic Copié !')">
+                <img src="logo/epicgame.png" alt="Epic">
             </div>
         </div>
-
     </div>
 
     <div class="toast" id="toast">COPIÉ !</div>
